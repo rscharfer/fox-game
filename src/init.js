@@ -1,9 +1,8 @@
-import gameState, { handleUserAction, clock } from "./gameState";
+import gameState, { handleUserAction } from "./gameState";
 import { TICK_RATE } from "./constants";
 import { initButtons } from "./buttons";
 
 async function init() {
-  console.log('here is clock', clock);
   // here we are passing in the handler for all buttons
   // what the handler does completely depends on what argument is passed to it (what button was clicked)
   initButtons(handleUserAction);

@@ -249,7 +249,8 @@
   background-image: url(./bg/FRAME.png);
 }
 
-.game {
+
+.game.day {
   background-image: url(./bg/DAY.png);
 }
 
