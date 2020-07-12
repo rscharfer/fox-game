@@ -4,18 +4,22 @@ import {
   SCENES,
   DAY_LENGTH,
   NIGHT_LENGTH,
+  FOX_STATES,
+  CSS_MAP,
+} from "./constants";
+import {
   getNextDieTime,
   getNextHungerTime,
   getNextPoopTime,
-} from "./constants";
+} from "./utilities";
 
 const gameState = {
-  // here is the state and the side effects that use this state are 
+  // here is the state and the side effects that use this state are
   // abstracted away into functions that are called when methods here are called
   // methods have access to the state and can be passed to the the functions responsible for the side effects
-  
+
   clock: 1,
-  current: "INIT",
+  current: FOX_STATES.INIT,
   wakeTime: -1,
   sleepTime: -1,
   hungryTime: -1,
@@ -40,19 +44,9 @@ const gameState = {
   // depending on some outside state and depending on the argument, this will do nothing or perform
   // some side effect.  Called here when the middle button is clicked.
   // icons are "weather", "poop", "fish"
-  /* the states of the fox are [
-  "INIT",
-  "HATCHING",
-  "IDLING",
-  "SLEEPING",
-  "EATING",
-  "POOPING",
-  "HUNGRY",
-  "CELEBRATING",
-  "DEAD"
-]*/
+
   handleUserAction(icon) {
-    if (this.current === "DEAD" || this.current === "INIT") {
+    if (this.current === FOX_STATES.DEAD || this.current === FOX_STATES.INIT) {
       this.startGame();
       return;
     }
@@ -70,10 +64,10 @@ const gameState = {
   },
 
   startGame() {
-    this.current = "HATCHING";
+    this.current = FOX_STATES.HATCHING;
     this.wakeTime = this.clock + 3;
     writeModal("");
-    modFox("egg");
+    modFox(CSS_MAP[FOX_STATES.HATCHING]);
     modScene("day");
   },
 
@@ -81,9 +75,9 @@ const gameState = {
   // either do nothing or change the state of the fox and the weather
   changeWeather() {
     if (
-      this.current === "IDLING" ||
-      this.current === "HUNGRY" ||
-      this.current === "POOPING"
+      this.current === FOX_STATES.IDLING ||
+      this.current === FOX_STATES.HUNGRY ||
+      this.current === FOX_STATES.POOPING
     ) {
       this.scene = (this.scene + 1) % SCENES.length;
       modScene(SCENES[this.scene]);
@@ -92,15 +86,15 @@ const gameState = {
   },
   // change state, change DOM based on fox state, and game state
   poop() {
-    this.current = "POOPING";
+    this.current = FOX_STATES.POOPING;
     this.poopTime = -1;
     this.dieTime = getNextDieTime(this.clock);
-    modFox("pooping");
+    modFox(CSS_MAP[FOX_STATES.POOPING]);
   },
   // depending on outside state, either do nothing
   // or change state, change DOM
   cleanUpPoop() {
-    if (this.current !== "POOPING") return;
+    if (this.current !== FOX_STATES.POOPING) return;
     this.dieTime = -1;
     togglePoopBag(true);
     this.startCelebrating();
@@ -108,43 +102,44 @@ const gameState = {
   },
   // change state and change DOM (fox state)
   startCelebrating() {
-    (this.current = "CELEBRATING"), modFox("celebrate");
+    (this.current = FOX_STATES.CELEBRATING),
+      modFox(CSS_MAP[FOX_STATES.CELEBRATING]);
     this.timeToStartCelebrating = -1;
     this.timeToEndCelebrating = this.clock + 2;
   },
   // change state, change DOM
   endCelebrating() {
-    (this.current = "IDLING"), this.determineFoxState();
+    (this.current = FOX_STATES.IDLING), this.determineFoxState();
     this.timeToEndCelebrating = -1;
     togglePoopBag(false);
   },
   // change state, change DOM
   getHungry() {
-    this.current = "HUNGRY";
+    this.current = FOX_STATES.HUNGRY;
     this.dieTime = getNextDieTime(this.clock);
     this.hungryTime = -1;
-    modFox("hungry");
+    modFox(CSS_MAP[FOX_STATES.HUNGRY]);
   },
   // do nothing or change state, change DOM
   feed() {
-    if (this.current !== "HUNGRY") return;
-    this.current = "EATING";
+    if (this.current !== FOX_STATES.HUNGRY) return;
+    this.current = FOX_STATES.EATING;
     this.dieTime = -1;
     this.poopTime = getNextPoopTime(this.clock);
-    modFox("eating");
+    modFox(CSS_MAP[FOX_STATES.EATING]);
     this.timeToStartCelebrating = this.clock + 2;
   },
   // change DOM and change state
   sleep() {
-    this.current = "SLEEP";
-    modFox("sleep");
+    this.current = FOX_STATES.SLEEPING;
+    modFox(CSS_MAP[FOX_STATES.SLEEPING]);
     modScene("night");
     this.clearTimes();
     this.wakeTime = this.clock + NIGHT_LENGTH;
   },
   // change DOM and change state
   wake() {
-    this.current = "IDLING";
+    this.current = FOX_STATES.IDLING;
     this.wakeTime = -1;
     this.scene = Math.random() > RAIN_CHANCE ? 0 : 1;
     modScene(SCENES[this.scene]);
@@ -152,11 +147,11 @@ const gameState = {
     this.hungryTime = getNextHungerTime(this.clock);
     this.determineFoxState();
   },
-  // change DOM and change state 
+  // change DOM and change state
   die() {
-    this.current = "DEAD";
+    this.current = FOX_STATES.DEAD;
     modScene("dead");
-    modFox("dead");
+    modFox(CSS_MAP[FOX_STATES.DEAD]);
     this.clearTimes();
     writeModal(`The fox died. :( 
       Press the middle button to start.`);
@@ -174,10 +169,9 @@ const gameState = {
   // change DOM based on a variable
   determineFoxState() {
     if (SCENES[this.scene] === "rain") {
-      modFox("rain");
-    } else modFox("idling");
-  }
- 
+      modFox(CSS_MAP[FOX_STATES.RAIN]);
+    } else modFox(CSS_MAP[FOX_STATES.IDLING]);
+  },
 };
 
 export default gameState;

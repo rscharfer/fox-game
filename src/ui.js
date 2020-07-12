@@ -1,5 +1,5 @@
  // possible arguments for modFox are 
- // ['pooping', 'celebrate', 'rain', 'hungry', 'eating', 'egg', 'sleep', 'dead', 'idling']
+ // ['init', 'pooping', 'celebrate', 'rain', 'hungry', 'eating', 'egg', 'sleep', 'dead', 'idling']
 export const modFox = function modFox(state){
   document.querySelector('.fox').className = `fox fox-${state}`;
 }

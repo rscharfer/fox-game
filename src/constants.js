@@ -5,17 +5,31 @@ export const RAIN_CHANCE = 0.2;
 
 export const SCENES = ["day", "rain"];
 
-export const DAY_LENGTH = 60;
+export const DAY_LENGTH = 50;
 
-export const NIGHT_LENGTH = 3;
+export const NIGHT_LENGTH = 5;
 
-export const getNextHungerTime = (clock) =>
-  Math.floor(Math.random() * 3) + 5 + clock;
+export const FOX_STATES = {
+  INIT: "INIT",
+  HATCHING: "HATCHING",
+  IDLING: "IDLING",
+  SLEEPING: "SLEEPING",
+  EATING: "EATING",
+  POOPING: "POOPING",
+  HUNGRY: "HUNGRY",
+  CELEBRATING: "CELEBRATING",
+  DEAD: "DEAD",
+  RAIN: "RAIN",
+};
 
-export const getNextDieTime = (clock) =>
-  Math.floor(Math.random() * 2) + 3 + clock;
-
-export const getNextPoopTime = (clock) =>
-  Math.floor(Math.random() * 3) + 4 + clock;
-
-// TODO:: need more constants too easy to misspell non-constants
+export const CSS_MAP = {
+  [FOX_STATES.HATCHING]: "egg",
+  [FOX_STATES.IDLING]: "idling",
+  [FOX_STATES.SLEEPING]: "sleep",
+  [FOX_STATES.EATING]: "eating",
+  [FOX_STATES.POOPING]: "pooping",
+  [FOX_STATES.HUNGRY]: "hungry",
+  [FOX_STATES.CELEBRATING]: "celebrate",
+  [FOX_STATES.DEAD]: "dead",
+  [FOX_STATES.RAIN]: "rain",
+};
