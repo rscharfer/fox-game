@@ -3,7 +3,12 @@ export const ICONS = ["fish", "poop", "weather"];
 
 export const RAIN_CHANCE = 0.2;
 
-export const SCENES = ["day", "rain"];
+export const SCENE_STATES = {
+  DAY : 'day',
+  RAIN: 'rain',
+  NIGHT: 'night',
+  DEAD: 'dead'
+};
 
 export const DAY_LENGTH = 50;
 
