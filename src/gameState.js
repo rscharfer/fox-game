@@ -14,9 +14,9 @@ import {
 } from "./utilities";
 
 const gameState = {
-  // here is the state and the methods that manipulate it and trigger the DOM changes
-  // the game has a clock and timers are continuously set to trigger certain actions
-
+  // full blown OOP
+  // the API exposed to the outside world is tick() and handlerUserAction()
+  // tick mutates the "hidden" data on the object and/or does some DOM manipulation
   clock: 1,
   current: FOX_STATES.INIT,
   wakeTime: -1,
@@ -26,13 +26,23 @@ const gameState = {
   poopTime: -1,
   timeToStartCelebrating: -1,
   timeToEndCelebrating: -1,
-  scene : -1,
-  // the caller of tick() increments the clock and if the the clock value
-  // matches one of the timers, it will trigger the timers handler
-  
+  scene: -1,
+  // what is tick() actually doing?
+
+  // change the value of a variable
+  // is the new value equal to another value?
+  // if yes, perform a callback / if no, do nothing
+
+  // change the value
+  // some sort of condition
+  // if true, callback / if no, do nothing
+
+  // can each of the "callbacks" listen for changes in the state and call themselves their timer goes off
+  // can we create a new event listener / or subscriber whenever another unsubscribes?
+
   tick() {
     this.clock++;
-    console.log('clcok', this.clock);
+    console.log("tick", this.clock);
     if (this.clock === this.wakeTime) this.wake();
     else if (this.clock === this.sleepTime) this.sleep();
     else if (this.clock === this.hungryTime) this.getHungry();
@@ -65,32 +75,51 @@ const gameState = {
   },
 
   startGame() {
+    // state manipulation
+    // could make this pure by passing in the state to a "reducer" which would return a new state
+    // there are some things we are tracking in state which do not lead to any other additional side effects
+    // what does that change in state actually do ? What kind of side effects does that change cause? Do we need to know that?
+
     this.current = FOX_STATES.HATCHING;
     this.wakeTime = this.clock + 3;
-    writeModal("");
-    modFox(CSS_MAP[FOX_STATES.HATCHING]);
     this.scene = SCENE_STATES.DAY;
-    modScene(SCENE_STATES.DAY);
+    // now these side effects are pretty much a function of the state. They can totally a function of the
+    // we saved the modal text on that state
+    writeModal("");
+    modFox(CSS_MAP[this.current]);
+    modScene(this.scene);
+
+    // could we do...
+    // 1. reducer which returns a new state
+    // 2. callback which is a function of that new state   ??
   },
 
   // depending on two outside variables, the fox state and the weather state,
   // either do nothing or change the state of the fox and the weather
   changeWeather() {
+    // game requirements stipulate only can change weather when pooping, hungry, idling, or turned around (raining)
     if (
-      this.current === FOX_STATES.IDLING ||
-      this.current === FOX_STATES.HUNGRY ||
-      this.current === FOX_STATES.POOPING
-    ) {
-      if (this.scene === SCENE_STATES.DAY || this.scene === SCENE_STATES.RAIN)
-      this.scene = this.scene === SCENE_STATES.DAY ? SCENE_STATES.RAIN : SCENE_STATES.DAY ;
-      else console.error(`The scene is ${this.scene}!  cant toggle!`);
-      modScene(this.scene);
-      this.determineFoxState();
-    }
+      [
+        FOX_STATES.IDLING,
+        FOX_STATES.RAIN,
+        FOX_STATES.POOPING,
+        FOX_STATES.HUNGRY,
+      ].includes(this.current)
+    )
+      // first change scene
+      this.scene =
+        this.scene === SCENE_STATES.DAY ? SCENE_STATES.RAIN : SCENE_STATES.DAY;
+    modScene(this.scene);
+
+    // second change fox state and trigger new animation if idling or raining
+    if (this.current === FOX_STATES.IDLING)
+      (this.current = FOX_STATES.RAIN), modFox(CSS_MAP[this.current]);
+    else if (this.current === FOX_STATES.RAIN)
+      (this.current = FOX_STATES.IDLING), modFox(CSS_MAP[this.current]);
   },
   // change state, change DOM based on fox state, and game state
   poop() {
-    console.log('pooping');
+    console.log("pooping");
     this.current = FOX_STATES.POOPING;
     this.poopTime = -1;
     this.dieTime = getNextDieTime(this.clock);
@@ -114,7 +143,10 @@ const gameState = {
   },
   // change state, change DOM
   endCelebrating() {
-    (this.current = FOX_STATES.IDLING), this.determineFoxState();
+    console.log('end celebrating');
+    this.current =
+      this.scene === SCENE_STATES.RAIN ? FOX_STATES.RAIN : FOX_STATES.IDLING;
+    modFox(CSS_MAP[this.current])
     this.timeToEndCelebrating = -1;
     togglePoopBag(false);
   },
@@ -131,7 +163,7 @@ const gameState = {
     this.current = FOX_STATES.EATING;
     this.dieTime = -1;
     this.poopTime = getNextPoopTime(this.clock);
-    console.log('new poopt time', this.poopTime);
+    console.log("new poop time", this.poopTime);
     modFox(CSS_MAP[FOX_STATES.EATING]);
     this.timeToStartCelebrating = this.clock + 2;
   },
@@ -146,19 +178,25 @@ const gameState = {
   },
   // change DOM and change state
   wake() {
-    this.current = FOX_STATES.IDLING;
+    // change state
+
     this.wakeTime = -1;
-    this.scene = Math.random() > RAIN_CHANCE ? SCENE_STATES.DAY  : SCENE_STATES.RAIN;
-    modScene(this.scene);
+    const isRaining = Math.random() > RAIN_CHANCE;
+    this.scene = isRaining ? SCENE_STATES.RAIN : SCENE_STATES.DAY;
+    this.current = isRaining ? FOX_STATES.RAIN : FOX_STATES.IDLING;
+
     this.sleepTime = this.clock + DAY_LENGTH;
     this.hungryTime = getNextHungerTime(this.clock);
-    this.determineFoxState();
+
+    // change DOM as function of state
+    modScene(this.scene);
+    modFox(CSS_MAP[this.current]);
   },
   // change DOM and change state
   die() {
     this.current = FOX_STATES.DEAD;
     modScene(SCENE_STATES.DEAD);
-    this.scene = SCENE_STATES.DEAD
+    this.scene = SCENE_STATES.DEAD;
     modFox(CSS_MAP[FOX_STATES.DEAD]);
     this.clearTimes();
     writeModal(`The fox died. :( 
@@ -173,13 +211,6 @@ const gameState = {
     this.poopTime = -1;
     this.timeToEndCelebrating = -1;
     this.timeToStartCelebrating = -1;
-  },
-  // change DOM based on a variable
-  determineFoxState() {
-    if (this.current == FOX_STATES.HUNGRY || this.current === FOX_STATES.POOPING) return; 
-    if (this.scene === SCENE_STATES.RAIN) {
-      modFox(CSS_MAP[FOX_STATES.RAIN]);
-    } else modFox(CSS_MAP[FOX_STATES.IDLING]);
   },
 };
 
